@@ -33,11 +33,28 @@
     "npmRebuild": false,
     "win": {
       "target": [
-        "dir"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "build/deepseek-whale.ico"
+      "icon": "build/deepseek-whale.ico",
+      "artifactName": "DeepSeek-Harness-Setup-${version}.${ext}"
     },
-    "electronDist": "node_modules/electron/dist"
+    "electronDist": "node_modules/electron/dist",
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeepSeek Harness",
+      "artifactName": "DeepSeek-Harness-Setup-${version}.${ext}",
+      "installerIcon": "build/deepseek-whale.ico",
+      "uninstallerIcon": "build/deepseek-whale.ico",
+      "installerHeaderIcon": "build/deepseek-whale.ico"
+    }
   },
   "devDependencies": {
     "electron": "^40.10.2",
