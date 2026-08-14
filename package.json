@@ -1,0 +1,46 @@
+{
+  "name": "deepseek-harness-desktop",
+  "productName": "DeepSeek Harness",
+  "version": "0.1.0",
+  "description": "Desktop wrapper for DeepSeek Harness (dsh) - double-click to launch the Web GUI in a native window.",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.1.0-rc.6"
+  },
+  "build": {
+    "appId": "com.deepseek.harness.desktop",
+    "productName": "DeepSeek Harness",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "!**/*.map",
+      "!build/**",
+      "!dist/**",
+      "!install.log*",
+      "!README.md",
+      "!.gitignore"
+    ],
+    "asar": false,
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/deepseek-whale.ico"
+    },
+    "electronDist": "node_modules/electron/dist"
+  },
+  "devDependencies": {
+    "electron": "^40.10.2",
+    "electron-builder": "^26.15.3"
+  }
+}
