@@ -1,7 +1,7 @@
 {
   "name": "deepseek-harness-desktop",
   "productName": "DeepSeek Harness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop wrapper for DeepSeek Harness (dsh) - double-click to launch the Web GUI in a native window.",
   "main": "main.js",
   "license": "MIT",
@@ -30,7 +30,8 @@
     "@deepseek-ai/dsh-subagent-in-process-driver": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-subprocess": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-timeout": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-workflow": "^0.1.0-rc.6"
+    "@deepseek-ai/dsh-workflow": "^0.1.0-rc.6",
+    "electron-updater": "^6.6.2"
   },
   "build": {
     "appId": "com.deepseek.harness.desktop",
@@ -38,8 +39,14 @@
     "directories": {
       "output": "dist"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "pmlpl",
+      "repo": "deepseek-harness-desktop"
+    },
     "files": [
       "main.js",
+      "preload.js",
       "splash.html",
       "assets/whale.svg",
       "package.json",

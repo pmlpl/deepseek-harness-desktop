@@ -14,7 +14,7 @@
  * Electron's embedded runtime.
  */
 
-const { app, BrowserWindow, shell, dialog, Menu } = require('electron');
+const { app, BrowserWindow, shell, dialog, Menu, ipcMain } = require('electron');
 const { spawn, spawnSync } = require('child_process');
 const http = require('http');
 const path = require('path');
@@ -202,6 +202,7 @@ function createWindow(url) {
       nodeIntegration: false,
       contextIsolation: true,
       spellcheck: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -241,6 +242,55 @@ function showError(message) {
   catch { /* ignore */ }
 }
 
+/* ------------------------------------------------------------------ */
+/* Auto-update (electron-updater, GitHub provider)                     */
+/* ------------------------------------------------------------------ */
+let updater = null;
+let updateVersion = null;
+
+function sendUpdate(payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update:status', payload);
+  }
+}
+
+function initUpdater() {
+  if (!app.isPackaged) return;
+  try {
+    const { autoUpdater } = require('electron-updater');
+    updater = autoUpdater;
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = true;
+
+    autoUpdater.on('checking-for-update', () => sendUpdate({ state: 'checking' }));
+    autoUpdater.on('update-available', (info) => { updateVersion = info && info.version; sendUpdate({ state: 'available', version: updateVersion }); });
+    autoUpdater.on('update-not-available', () => sendUpdate({ state: 'uptodate' }));
+    autoUpdater.on('download-progress', (p) => sendUpdate({ state: 'downloading', percent: p ? Math.round(p.percent) : null, version: updateVersion }));
+    autoUpdater.on('update-downloaded', (info) => { updateVersion = info && info.version; sendUpdate({ state: 'downloaded', version: updateVersion }); });
+    autoUpdater.on('error', (err) => { log('updater error: ' + (err && err.message)); sendUpdate({ state: 'error', message: err && err.message }); });
+
+    ipcMain.on('update:check', () => { if (updater) updater.checkForUpdates().catch((e) => log('update check failed: ' + e.message)); });
+    ipcMain.on('update:download', () => { if (updater) updater.downloadUpdate().catch((e) => log('update download failed: ' + e.message)); });
+    ipcMain.on('update:install', () => { if (updater) { try { updater.quitAndInstall(false, true); } catch (e) { log('quitAndInstall failed: ' + e.message); } } });
+
+    // Optional forced preview (for testing the indicator UI without a real release)
+    if (process.env.DSH_FORCE_UPDATE) {
+      const v = typeof process.env.DSH_FORCE_UPDATE === 'string' && process.env.DSH_FORCE_UPDATE !== '1' ? process.env.DSH_FORCE_UPDATE : '0.1.2';
+      setTimeout(() => sendUpdate({ state: 'available', version: v }), 2000);
+    }
+
+    log('updater initialized');
+  } catch (err) {
+    log('updater init failed: ' + (err && err.message));
+  }
+}
+
+function scheduleUpdateChecks() {
+  if (!updater) return;
+  setTimeout(() => updater.checkForUpdates().catch(() => {}), 10 * 1000);
+  setInterval(() => updater.checkForUpdates().catch(() => {}), 6 * 60 * 60 * 1000);
+}
+
 async function boot() {
   try {
     setSplashStatus('正在启动 DeepSeek Harness 服务…');
@@ -251,6 +301,7 @@ async function boot() {
     log('http ready, opening window');
     setSplashStatus('即将打开工作台…');
     createWindow(serverUrl);
+    scheduleUpdateChecks();
   } catch (err) {
     log('boot failed: ' + (err && err.stack ? err.stack : err));
     closeSplash();
@@ -278,6 +329,7 @@ if (!gotLock) {
     try { fs.mkdirSync(app.getPath('userData'), { recursive: true }); } catch { /* ignore */ }
     if (app.isPackaged) Menu.setApplicationMenu(null);
     log('=== DeepSeek Harness desktop starting (v' + app.getVersion() + ') ===');
+    initUpdater();
     createSplash();
     boot();
   });
