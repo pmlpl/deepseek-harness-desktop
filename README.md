@@ -18,6 +18,7 @@ Get the latest installer from the
 ## Features
 
 - Launches the official `@deepseek-ai/dsh` Web GUI (v0.1.0-rc.6) inside a native Electron window
+- Shows a splash screen with live startup status while the server boots
 - Picks a free port automatically; stops the server when you quit
 - Single-instance: launching the app again focuses the existing window
 - Shares your existing `~/.dsh` configuration, sessions, and credentials

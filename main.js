@@ -26,6 +26,7 @@ const START_TIMEOUT_MS = 90 * 1000;
 
 let serverProc = null;
 let mainWindow = null;
+let splashWindow = null;
 let serverUrl = null;
 let quitting = false;
 
@@ -68,6 +69,53 @@ function findNodeBinary() {
 
 function findDshBin() {
   return path.join(__dirname, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js');
+}
+
+function createSplash() {
+  try {
+    splashWindow = new BrowserWindow({
+      width: 420,
+      height: 360,
+      frame: false,
+      transparent: true,
+      resizable: false,
+      movable: true,
+      minimizable: false,
+      maximizable: false,
+      skipTaskbar: true,
+      center: true,
+      show: false,
+      backgroundColor: '#00000000',
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        spellcheck: false,
+      },
+    });
+    splashWindow.setMenuBarVisibility(false);
+    splashWindow.once('ready-to-show', () => { if (!quitting && splashWindow) splashWindow.show(); });
+    splashWindow.on('closed', () => { splashWindow = null; });
+    splashWindow.loadFile(path.join(__dirname, 'splash.html')).catch(() => {});
+  } catch {
+    splashWindow = null;
+  }
+}
+
+function setSplashStatus(text) {
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  try {
+    splashWindow.webContents.executeJavaScript(
+      'window.__splash && window.__splash.setStatus(' + JSON.stringify(String(text)) + ')'
+    ).catch(() => {});
+  } catch { /* ignore */ }
+}
+
+function closeSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    const w = splashWindow;
+    splashWindow = null;
+    try { w.destroy(); } catch { /* ignore */ }
+  }
 }
 
 function startServer() {
@@ -175,7 +223,7 @@ function createWindow(url) {
     } catch { /* let electron decide */ }
   });
 
-  mainWindow.once('ready-to-show', () => { if (!quitting) mainWindow.show(); });
+  mainWindow.once('ready-to-show', () => { if (!quitting) { mainWindow.show(); closeSplash(); } });
   mainWindow.on('closed', () => { mainWindow = null; });
 
   mainWindow.loadURL(url).catch((err) => log('loadURL failed: ' + (err && err.message ? err.message : err)));
@@ -195,13 +243,17 @@ function showError(message) {
 
 async function boot() {
   try {
+    setSplashStatus('正在启动 DeepSeek Harness 服务…');
     serverUrl = await startServer();
     log('server ready at ' + serverUrl);
+    setSplashStatus('服务已就绪 · 正在加载界面…');
     await waitForHttp(serverUrl);
     log('http ready, opening window');
+    setSplashStatus('即将打开工作台…');
     createWindow(serverUrl);
   } catch (err) {
     log('boot failed: ' + (err && err.stack ? err.stack : err));
+    closeSplash();
     showError(String((err && err.message) || err));
     app.quit();
   }
@@ -226,11 +278,12 @@ if (!gotLock) {
     try { fs.mkdirSync(app.getPath('userData'), { recursive: true }); } catch { /* ignore */ }
     if (app.isPackaged) Menu.setApplicationMenu(null);
     log('=== DeepSeek Harness desktop starting (v' + app.getVersion() + ') ===');
+    createSplash();
     boot();
   });
 
   app.on('window-all-closed', () => app.quit());
-  app.on('before-quit', () => { quitting = true; stopServer(); });
+  app.on('before-quit', () => { quitting = true; closeSplash(); stopServer(); });
   app.on('will-quit', () => stopServer());
   process.on('exit', () => stopServer());
 }

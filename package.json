@@ -40,6 +40,8 @@
     },
     "files": [
       "main.js",
+      "splash.html",
+      "assets/whale.svg",
       "package.json",
       "!**/*.map",
       "!build/**",

@@ -17,6 +17,7 @@ DeepSeek Harness，而不必在终端里执行 `npx @deepseek-ai/dsh web`。
 ## 功能特性
 
 - 在原生 Electron 窗口中运行官方 `@deepseek-ai/dsh` Web 界面（v0.1.0-rc.6）
+- 启动时显示加载画面，实时展示启动进度
 - 自动选择空闲端口；退出时自动关闭服务
 - 单实例运行：再次启动时聚焦已有窗口
 - 与命令行工具共享已有的 `~/.dsh` 配置、会话和凭据

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' file:; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+<title>DeepSeek Harness</title>
+<style>
+  :root {
+    --ink: #eef6ff;
+    --ink-dim: rgba(176, 202, 240, 0.62);
+    --line: rgba(124, 190, 255, 0.35);
+    --glow: rgba(124, 217, 255, 0.55);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: transparent; overflow: hidden; }
+  body {
+    font-family: 'Bahnschrift', 'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .stage {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(125, 190, 255, 0.14);
+    background:
+      radial-gradient(560px 300px at 50% 118%, rgba(58, 150, 255, 0.10), transparent 62%),
+      radial-gradient(420px 260px at 84% -8%, rgba(94, 240, 214, 0.05), transparent 60%),
+      linear-gradient(158deg, #0b1222 0%, #070c16 52%, #04070e 100%);
+    box-shadow: 0 24px 90px rgba(0, 0, 0, 0.55), inset 0 0 70px rgba(8, 16, 32, 0.55);
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+  /* faint drifting star field */
+  .stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    opacity: 0.5;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 14% 22%, rgba(190, 220, 255, 0.50), transparent 100%),
+      radial-gradient(1px 1px at 78% 16%, rgba(190, 220, 255, 0.34), transparent 100%),
+      radial-gradient(1.4px 1.4px at 88% 68%, rgba(190, 220, 255, 0.28), transparent 100%),
+      radial-gradient(1px 1px at 8% 74%, rgba(190, 220, 255, 0.30), transparent 100%),
+      radial-gradient(1px 1px at 58% 8%, rgba(190, 220, 255, 0.22), transparent 100%);
+    animation: twinkle 4.5s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: 0.25; } to { opacity: 0.6; } }
+  /* sonar cluster */
+  .sonar { position: relative; width: 150px; height: 150px; display: grid; place-items: center; }
+  .sonar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(124, 190, 255, 0.10);
+  }
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(124, 217, 255, 0.65) 7%, transparent 16%, transparent 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+    animation: spin 3.2s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ping {
+    position: absolute;
+    inset: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    animation: ping 2.8s cubic-bezier(0, 0.2, 0.4, 1) infinite;
+  }
+  .ping.p2 { animation-delay: 1.4s; }
+  @keyframes ping {
+    0% { transform: scale(0.55); opacity: 0; }
+    25% { opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  .whale {
+    position: relative;
+    z-index: 1;
+    width: 86px;
+    height: 86px;
+    filter: drop-shadow(0 0 14px var(--glow)) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5));
+    animation: rise 4.6s ease-in-out infinite, appear 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  @keyframes rise { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes appear { from { opacity: 0; transform: translateY(14px) scale(0.86); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  /* text block */
+  .title {
+    font-weight: 300;
+    font-size: 31px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    animation: appear 0.9s 0.12s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .title b { font-weight: 300; color: var(--ink-dim); margin-left: 0.18em; }
+  .kicker {
+    font-family: 'Cascadia Mono', 'Consolas', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgba(150, 185, 235, 0.5);
+    margin-top: -8px;
+    animation: appear 0.9s 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .status {
+    font-family: 'Cascadia Mono', 'Consolas', 'Microsoft YaHei UI', monospace;
+    font-size: 12.5px;
+    color: #9fc8ff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: appear 0.9s 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .caret {
+    display: inline-block;
+    width: 7px;
+    height: 13px;
+    background: #7cd9ff;
+    box-shadow: 0 0 8px rgba(124, 217, 255, 0.8);
+    animation: blink 1.05s steps(2, start) infinite;
+  }
+  @keyframes blink { to { visibility: hidden; } }
+  .bar {
+    position: relative;
+    width: 216px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(140, 180, 240, 0.12);
+    overflow: hidden;
+    animation: appear 0.9s 0.36s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 46%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, #4da3ff 30%, #7ef0d8);
+    animation: slide 2.1s ease-in-out infinite;
+  }
+  @keyframes slide { from { transform: translateX(-110%); } to { transform: translateX(240%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .ring, .ping, .whale, .bar::after, .stage::before { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="sonar">
+      <div class="ring"></div>
+      <div class="ping"></div>
+      <div class="ping p2"></div>
+      <img class="whale" src="assets/whale.svg" alt="" draggable="false" />
+    </div>
+    <div class="title">DeepSeek<b>Harness</b></div>
+    <div class="kicker">Desktop &middot; dsh web gui</div>
+    <div class="status"><span class="caret"></span><span id="status">正在启动 DeepSeek Harness 服务…</span></div>
+    <div class="bar"></div>
+  </div>
+  <script>
+    window.__splash = {
+      setStatus: function (text) {
+        var el = document.getElementById('status');
+        if (el) el.textContent = String(text);
+      }
+    };
+    // Fallback: advance the status locally until the host sends its own updates
+    (function () {
+      var steps = [
+        '正在启动 DeepSeek Harness 服务…',
+        '正在加载插件与界面…',
+        '即将打开工作台…'
+      ];
+      var i = 0, updated = false;
+      var orig = window.__splash.setStatus;
+      window.__splash.setStatus = function (t) { updated = true; orig(t); };
+      setInterval(function () {
+        if (updated) return;
+        i = (i + 1) % steps.length;
+        orig(steps[i]);
+      }, 7000);
+    })();
+  </script>
+</body>
+</html>
