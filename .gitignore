@@ -3,6 +3,7 @@ node_modules/
 
 # Build output (large binaries)
 dist/
+dist-release/
 *.exe
 
 # Logs

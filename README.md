@@ -1,11 +1,29 @@
 # DeepSeek Harness — Desktop
 
+[简体中文](./README.zh-CN.md) | English
+
 An unofficial desktop app for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
 (`dsh`). It wraps the official `@deepseek-ai/dsh` Web UI in a native Electron window,
 so you can use DeepSeek Harness by double-clicking an icon instead of running
 `npx @deepseek-ai/dsh web` in a terminal.
 
-## What it does
+## Download
+
+Get the latest installer from the
+[Releases page](https://github.com/pmlpl/deepseek-harness-desktop/releases):
+
+- **`DeepSeek-Harness-Setup-0.1.0.exe`** — Windows x64 installer (NSIS).
+  Choose your install folder; creates Desktop and Start Menu shortcuts.
+
+## Features
+
+- Launches the official `@deepseek-ai/dsh` Web GUI (v0.1.0-rc.6) inside a native Electron window
+- Picks a free port automatically; stops the server when you quit
+- Single-instance: launching the app again focuses the existing window
+- Shares your existing `~/.dsh` configuration, sessions, and credentials
+- Official DeepSeek black-whale icon (exe, shortcuts, installer)
+
+## How it works
 
 1. Starts the `dsh web` server as a child process (on a free port).
 2. Waits until the GUI is ready.
@@ -17,18 +35,19 @@ app shares the exact same configuration as the command-line tool.
 
 ## Requirements
 
-- Windows
+- Windows 10/11 (x64)
 - **Node.js v20+** installed — the app runs the `dsh` server with the system
   Node.js because its native modules (sharp, node-pty, koffi) are built against
   the Node ABI, not Electron's.
 
-## Use
-
-Build the packaged app, then double-click `DeepSeek Harness.exe`:
+## Build from source
 
 ```sh
+git clone https://github.com/pmlpl/deepseek-harness-desktop.git
+cd deepseek-harness-desktop
 npm install
-npm run pack     # produces dist/win-unpacked/DeepSeek Harness.exe
+npm run pack     # produces dist/win-unpacked/DeepSeek Harness.exe (unpacked)
+npm run dist     # produces dist/DeepSeek-Harness-Setup-<version>.exe (NSIS installer)
 ```
 
 ## Project layout
@@ -38,6 +57,7 @@ npm run pack     # produces dist/win-unpacked/DeepSeek Harness.exe
 - `package.json` — app metadata + electron-builder config.
 - `build/` — the app icon (`deepseek-whale.ico`, the official black whale
   from the `dsh` repository).
+- `tools/repair-session-log.mjs` — session-log repair tool (see Troubleshooting).
 
 ## Troubleshooting
 
