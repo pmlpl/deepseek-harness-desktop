@@ -16,6 +16,7 @@ dist-clean-build.log
 gh_login.log
 gh_login.err.log
 splash-preview.png
+update-icon-preview.png
 
 # OS / editor
 .DS_Store
