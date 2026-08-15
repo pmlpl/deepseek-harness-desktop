@@ -4,6 +4,7 @@ node_modules/
 # Build output (large binaries)
 dist/
 dist-release/
+dist-clean/
 *.exe
 
 # Logs
@@ -11,6 +12,7 @@ install.log
 install.err.log
 build.log
 build.err.log
+dist-clean-build.log
 gh_login.log
 gh_login.err.log
 
