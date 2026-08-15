@@ -52,30 +52,7 @@ npm run dist     # 生成 dist/DeepSeek-Harness-Setup-<版本>.exe（NSIS 安装
 - `main.js` — Electron 主进程；启动 `dsh web --port 0`，解析打印的 URL，然后打开窗口。
 - `package.json` — 应用元数据 + electron-builder 配置。
 - `build/` — 应用图标（`deepseek-whale.ico`，取自 `dsh` 官方仓库的黑鲸图标）。
-- `tools/repair-session-log.mjs` — 会话日志修复工具（见下方"故障排查"）。
-
-## 故障排查
-
-### "历史加载失败 / history unavailable ... corrupt session log: seq gap"
-
-当 Harness 拒绝加载某个会话日志（其中包含重复的序列号）时，会出现此错误。
-上游 Harness 的一个已知问题可能在长会话的 seed-end/inbox-splice 边界写入重复的 seq 区间。
-
-本仓库附带一个修复工具：
-
-```sh
-# 检查会话日志
-node tools/repair-session-log.mjs "<DSH_HOME>/sessions/<项目目录>/<会话ID>/session.jsonl.zstd"
-
-# 修复（修复前会先在日志旁生成 .repair-backup 备份）
-node tools/repair-session-log.mjs "<...>/session.jsonl.zstd" --fix
-```
-
-修复完成后重启应用，再重新打开该会话。
-
-注意：当会话仍被运行中的 Harness 打开时，该问题可能在下一个回合边界再次出现。
-如需彻底修复日志，请先关闭拥有该会话的 Harness 再进行修复，并可考虑在上游
-<https://github.com/deepseek-ai/deepseek-harness> 反馈该重复 seq 问题。
+- `tools/repair-session-log.mjs` — 会话日志修复工具。
 
 ## 说明
 

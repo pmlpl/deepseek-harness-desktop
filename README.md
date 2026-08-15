@@ -57,34 +57,7 @@ npm run dist     # produces dist/DeepSeek-Harness-Setup-<version>.exe (NSIS inst
 - `package.json` — app metadata + electron-builder config.
 - `build/` — the app icon (`deepseek-whale.ico`, the official black whale
   from the `dsh` repository).
-- `tools/repair-session-log.mjs` — session-log repair tool (see Troubleshooting).
-
-## Troubleshooting
-
-### "历史加载失败 / history unavailable ... corrupt session log: seq gap"
-
-This error appears when the harness refuses to load a session whose event log
-contains duplicated sequence numbers. A known upstream harness issue can write
-duplicate seq ranges at seed-end/inbox-splice boundaries of a long-running
-session.
-
-This repo ships a repair tool:
-
-```sh
-# check a session log
-node tools/repair-session-log.mjs "<DSH_HOME>/sessions/<project-dir>/<session-id>/session.jsonl.zstd"
-
-# repair it (writes a .repair-backup next to the log first)
-node tools/repair-session-log.mjs "<...>/session.jsonl.zstd" --fix
-```
-
-Restart the app after repairing, then reopen the session.
-
-Note: while a session is actively open in a running harness, the bug can
-recur at the next turn boundary. For a permanently clean log, repair after the
-harness that owns the session has been closed, and consider reporting the
-duplicate-seq issue upstream at
-<https://github.com/deepseek-ai/deepseek-harness>.
+- `tools/repair-session-log.mjs` — session-log repair tool.
 
 ## Notes
 
