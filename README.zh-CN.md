@@ -1,6 +1,6 @@
 # DeepSeek Harness — 桌面版
 
-English | [简体中文](./README.zh-CN.md)
+[English](./README.md) | [简体中文](./README.zh-CN.md)
 
 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）的非官方桌面应用。
 它把官方 `@deepseek-ai/dsh` Web 界面封装进一个原生 Electron 窗口，让你可以双击图标使用
